@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+    <title>PubSub Music Player</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="sound.js"></script>
+</head>
+<body>
+<h3>Music Events</h3>
+<button onclick="playMusic()" id="play-music-button">Connect to Music</button>
+<div id="messages" style="display: flex; flex-direction: column"></div>
+
+<script>
+    var eventSource;
+
+    function playMusic() {
+        document.getElementById("play-music-button").setAttribute("hidden", "hidden");
+        eventSource = new EventSource('/api/stream');
+        const messages = document.getElementById('messages');
+
+        eventSource.onmessage = function (event) {
+            const span = document.createElement("span");
+            span.textContent = event.data;
+            messages.prepend(span);
+            playTone(Number(event.data.split(",")[1]), "sine", Number(event.data.split(",")[2]));
+        };
+
+        eventSource.onerror = function () {
+            console.error("Error connecting to the stream.");
+            eventSource.close();
+        };
+    }
+</script>
+</body>
+</html>

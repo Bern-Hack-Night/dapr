@@ -1,0 +1,145 @@
+version: "3.3"
+
+services:
+  musicemitter:
+    build:
+      context: .
+      dockerfile: ./MusicEmitterService/Dockerfile
+    ports:
+      - "50001:50001" # Dapr instances communicate over gRPC so we need to expose the gRPC port
+    depends_on:
+      - placement
+    environment:
+      dapr_client_grpc-port: 50001
+      dapr_api_port: 3500
+      spring_application_name: musicemitter
+    networks:
+      - webproxy2
+    profiles:
+      - emitter
+  musicemitter-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+      "--app-id", "musicemitter",
+      "--app-port", "8080",
+      "--placement-host-address", "placement:50006",
+      "--resources-path", "./components",
+      "--dapr-http-port", "3500",
+      "--dapr-grpc-port", "50001"
+    ]
+    volumes:
+      - "./.components/:/components" # Mount our components folder for the runtime to use. The mounted location must match the --resources-path argument.
+    depends_on:
+      - musicemitter
+    network_mode: "service:musicemitter" # Attach the musicemitter-dapr service to the musicemitter network namespace
+    profiles:
+      - emitter
+
+  musicconsumer-1:
+    build:
+      context: .
+      dockerfile: ./MusicConsumerService/Dockerfile
+    ports:
+      - "50002:50002"
+      - "10000:8080"
+    depends_on:
+      - placement
+    environment:
+      dapr_client_grpc-port: 50002
+      dapr_api_port: 3501
+      spring_application_name: musicconsumer-1
+    networks:
+      - webproxy2
+  musicconsumer-1-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+      "--app-id", "musicconsumer-1",
+      "--app-port", "8080",
+      "--placement-host-address", "placement:50006",
+      "--resources-path", "./components",
+      "--dapr-http-port", "3501",
+      "--dapr-grpc-port", "50002"
+    ]
+    volumes:
+      - "./.components/:/components"
+    depends_on:
+      - musicconsumer-1
+    network_mode: "service:musicconsumer-1"
+
+  musicconsumer-2:
+    build:
+      context: .
+      dockerfile: ./MusicConsumerService/Dockerfile
+    ports:
+      - "50003:50003"
+      - "10001:8080"
+    depends_on:
+      - placement
+    environment:
+      dapr_client_grpc-port: 50003
+      dapr_api_port: 3502
+      spring_application_name: musicconsumer-2
+    networks:
+      - webproxy2
+  musicconsumer-2-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+      "--app-id", "musicconsumer-2",
+      "--app-port", "8080",
+      "--placement-host-address", "placement:50006",
+      "--resources-path", "./components",
+      "--dapr-http-port", "3502",
+      "--dapr-grpc-port", "50003"
+    ]
+    volumes:
+      - "./.components/:/components"
+    depends_on:
+      - musicconsumer-2
+    network_mode: "service:musicconsumer-2"
+
+  musicconsumer-3:
+    build:
+      context: .
+      dockerfile: ./MusicConsumerService/Dockerfile
+    ports:
+      - "50004:50004"
+      - "10002:8080"
+    depends_on:
+      - placement
+    environment:
+      dapr_client_grpc-port: 50004
+      dapr_api_port: 3503
+      spring_application_name: musicconsumer-3
+    networks:
+      - webproxy2
+  musicconsumer-3-dapr:
+    image: "daprio/daprd:edge"
+    command: [
+      "./daprd",
+      "--app-id", "musicconsumer-3",
+      "--app-port", "8080",
+      "--placement-host-address", "placement:50006",
+      "--resources-path", "./components",
+      "--dapr-http-port", "3503",
+      "--dapr-grpc-port", "50004"
+    ]
+    volumes:
+      - "./.components/:/components"
+    depends_on:
+      - musicconsumer-3
+    network_mode: "service:musicconsumer-3"
+
+  placement:
+    image: "daprio/dapr"
+    command: [ "./placement", "--port", "50006" ]
+    ports:
+      - "50006:50006"
+    networks:
+      - webproxy2
+
+networks:
+  webproxy2:
+    driver: bridge
