@@ -42,12 +42,6 @@ public class ServiceDiscoveryService {
         log.info("Registered service '{}'", serviceName);
     }
 
-    public void unRegisterMusicService(final String serviceName) {
-        registeredMusicServices.remove(serviceName);
-        daprClient.saveState(stateStoreName, STATE_KEY_NAME, registeredMusicServices).block();
-        log.info("Unregistered service '{}'", serviceName);
-    }
-
     public Map<Music, Set<String>> getServiceDistribution() {
         final Map<Music, Set<String>> musicToServiceMappings = new HashMap<>();
         melodyProvider.getMusics().forEach(music -> musicToServiceMappings.put(music, new HashSet<>()));

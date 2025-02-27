@@ -26,16 +26,4 @@ public class ServiceDiscoveryController {
         });
     }
 
-    @Topic(name = "services:unregister", pubsubName = "pubsub")
-    @PostMapping(path = "/services/unregistration")
-    private Mono<Void> unRegisterService(@RequestBody(required = false) final CloudEvent<String> cloudEvent) {
-        return Mono.fromRunnable(() -> {
-            try {
-                serviceDiscoveryService.unRegisterMusicService(cloudEvent.getData());
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
 }

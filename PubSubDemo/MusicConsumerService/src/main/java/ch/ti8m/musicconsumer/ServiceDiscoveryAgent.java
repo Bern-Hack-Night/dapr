@@ -1,7 +1,6 @@
 package ch.ti8m.musicconsumer;
 
 import io.dapr.client.DaprClient;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,15 +24,6 @@ public class ServiceDiscoveryAgent {
         daprClient.publishEvent(
                 "pubsub",
                 "services:register",
-                applicationName
-        ).block();
-    }
-
-    @PreDestroy
-    public void destroy() {
-        daprClient.publishEvent(
-                "pubsub",
-                "services:unregister",
                 applicationName
         ).block();
     }
